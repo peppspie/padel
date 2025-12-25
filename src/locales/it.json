@@ -8,9 +8,49 @@
     "configure": "Configura Torneo",
     "placeholderConfig": "Qui andrà il form di configurazione.",
     "dashboard": "Dashboard Torneo",
-    "placeholderDashboard": "Dashboard del torneo attivo."
+    "placeholderDashboard": "Dashboard del torneo attivo.",
+    "create": "Crea Torneo",
+    "notFound": "Torneo non trovato"
+  },
+  "home": {
+    "activeTournaments": "I tuoi Tornei",
+    "noTournaments": "Nessun torneo. Creane uno nuovo!",
+    "delete": "Elimina",
+    "continue": "Continua"
   },
   "nav": {
     "brand": "PadelTour"
+  },
+  "tournament": {
+    "groupStage": "Fase a Gironi",
+    "knockoutStage": "Eliminazione Diretta",
+    "matches": "Partite",
+    "standings": "Classifica",
+    "vs": "vs",
+    "noMatches": "Nessuna partita programmata.",
+    "points": "PT",
+    "played": "G",
+    "sets": "S"
+  },
+  "setup": {
+    "tournamentName": "Nome Torneo",
+    "tournamentType": "Tipo Torneo",
+    "groups": "Solo Gironi",
+    "knockout": "Eliminazione Diretta",
+    "mixed": "Gironi + Eliminazione",
+    "teams": "Squadre",
+    "addTeam": "Aggiungi Squadra",
+    "teamPlaceholder": "Nome Squadra",
+    "player1": "Giocatore 1",
+    "player2": "Giocatore 2",
+    "rules": "Regole Punteggio",
+    "setsToWin": "Set per vincere",
+    "gamesPerSet": "Game per set",
+    "tieBreakAt": "Tie-break sul",
+    "decidingPoint": "Punto de oro (40-40)",
+    "validation": {
+      "minTeams": "Sono necessarie almeno 2 squadre",
+      "nameRequired": "Il nome del torneo è obbligatorio"
+    }
   }
 }

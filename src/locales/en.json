@@ -8,9 +8,49 @@
     "configure": "Configure Tournament",
     "placeholderConfig": "Configuration form will go here.",
     "dashboard": "Tournament Dashboard",
-    "placeholderDashboard": "Active tournament dashboard."
+    "placeholderDashboard": "Active tournament dashboard.",
+    "create": "Create Tournament",
+    "notFound": "Tournament not found"
+  },
+  "home": {
+    "activeTournaments": "Your Tournaments",
+    "noTournaments": "No tournaments yet. Start a new one!",
+    "delete": "Delete",
+    "continue": "Continue"
   },
   "nav": {
     "brand": "PadelTour"
+  },
+  "tournament": {
+    "groupStage": "Group Stage",
+    "knockoutStage": "Knockout Stage",
+    "matches": "Matches",
+    "standings": "Standings",
+    "vs": "vs",
+    "noMatches": "No matches scheduled yet.",
+    "points": "PTS",
+    "played": "P",
+    "sets": "S"
+  },
+  "setup": {
+    "tournamentName": "Tournament Name",
+    "tournamentType": "Tournament Type",
+    "groups": "Groups Stage",
+    "knockout": "Knockout Only",
+    "mixed": "Groups + Knockout",
+    "teams": "Teams",
+    "addTeam": "Add Team",
+    "teamPlaceholder": "Team Name",
+    "player1": "Player 1",
+    "player2": "Player 2",
+    "rules": "Scoring Rules",
+    "setsToWin": "Sets to win",
+    "gamesPerSet": "Games per set",
+    "tieBreakAt": "Tie-break at",
+    "decidingPoint": "Golden Point (40-40)",
+    "validation": {
+      "minTeams": "At least 2 teams are required",
+      "nameRequired": "Tournament name is required"
+    }
   }
 }
