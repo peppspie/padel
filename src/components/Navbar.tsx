@@ -22,7 +22,7 @@ export function Navbar() {
             onClick={toggleLanguage}
             className="text-gray-300 hover:text-white text-sm font-medium px-3 py-1 rounded-md border border-gray-600 hover:border-gray-400 transition-colors"
           >
-            {i18n.language === 'en' ? 'IT' : 'EN'}
+            {i18n.language.toUpperCase()}
           </button>
         </div>
       </div>

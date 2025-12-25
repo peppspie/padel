@@ -30,7 +30,19 @@
     "noMatches": "No matches scheduled yet.",
     "points": "PTS",
     "played": "P",
-    "sets": "S"
+    "sets": "S",
+    "scoreModal": {
+      "title": "Enter Score",
+      "set": "Set",
+      "save": "Save Result",
+      "cancel": "Cancel",
+      "completed": "Match Completed"
+    },
+    "configSummary": {
+      "bestOf": "Best of {{count}} Sets",
+      "gamesPerSet": "{{count}} Games",
+      "goldenPoint": "Golden Point"
+    }
   },
   "setup": {
     "tournamentName": "Tournament Name",

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Tournament } from '../types';
+import type { Tournament, Match, MatchScore } from '../types';
 import { storageService } from '../services/storage';
+import { ScoreModal } from '../components/ScoreModal';
 
 export function TournamentView() {
   const { id } = useParams();
@@ -10,15 +11,38 @@ export function TournamentView() {
   const { t } = useTranslation();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [activeTab, setActiveTab] = useState<'matches' | 'standings'>('matches');
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   useEffect(() => {
     if (id) {
-      const data = storageService.getTournament(id);
-      if (data) {
-        setTournament(data);
-      }
+      loadTournament();
     }
   }, [id]);
+
+  const loadTournament = () => {
+    if (id) {
+      const data = storageService.getTournament(id);
+      if (data) setTournament(data);
+    }
+  };
+
+  const handleMatchClick = (match: Match) => {
+    setSelectedMatch(match);
+  };
+
+  const handleScoreSave = (score: MatchScore) => {
+    if (!tournament || !selectedMatch) return;
+
+    const updatedMatch: Match = {
+      ...selectedMatch,
+      score,
+      status: score.winnerId ? 'completed' : 'in_progress'
+    };
+
+    storageService.updateMatch(tournament.id, updatedMatch);
+    loadTournament(); // Reload to update UI
+    setSelectedMatch(null);
+  };
 
   if (!tournament) {
     return (
@@ -34,8 +58,12 @@ export function TournamentView() {
     );
   }
 
+  const getTeam = (teamId: string) => {
+    return tournament.teams.find(t => t.id === teamId);
+  };
+
   const getTeamName = (teamId: string) => {
-    return tournament.teams.find(t => t.id === teamId)?.name || 'Unknown';
+    return getTeam(teamId)?.name || 'Unknown';
   };
 
   return (
@@ -46,7 +74,18 @@ export function TournamentView() {
           &larr; {t('app.back')}
         </button>
         <h2 className="text-2xl font-bold text-white">{tournament.config.name}</h2>
-        <p className="text-sm text-gray-500 uppercase tracking-widest">{t(`setup.${tournament.config.type}`)}</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400 mt-1">
+          <span className="uppercase tracking-widest border-r border-gray-600 pr-4">{t(`setup.${tournament.config.type}`)}</span>
+          <span>{t('tournament.configSummary.bestOf', { count: tournament.config.scoring.setsToWin === 1 ? 1 : (tournament.config.scoring.setsToWin * 2 - 1) })}</span>
+          <span>•</span>
+          <span>{t('tournament.configSummary.gamesPerSet', { count: tournament.config.scoring.gamesPerSet })}</span>
+          {tournament.config.scoring.decidingPoint && (
+            <>
+              <span>•</span>
+              <span className="text-yellow-500 font-medium">{t('tournament.configSummary.goldenPoint')}</span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -80,21 +119,32 @@ export function TournamentView() {
                   {group.matches.map(match => (
                     <div 
                       key={match.id}
-                      className="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex items-center justify-between group active:scale-95 transition-transform"
+                      onClick={() => handleMatchClick(match)}
+                      className={`bg-gray-800 p-4 rounded-2xl border flex items-center justify-between group active:scale-95 transition-all cursor-pointer ${match.status === 'completed' ? 'border-green-500/30' : 'border-gray-700'}`}
                     >
-                      <div className="flex-1 text-right pr-4">
-                        <p className="font-bold text-white truncate">{getTeamName(match.teamAId)}</p>
+                      <div className={`flex-1 text-right pr-3 ${match.score.winnerId === match.teamAId ? 'text-green-400 font-extrabold' : 'text-white font-bold'}`}>
+                        <p className="truncate">{getTeamName(match.teamAId)}</p>
                       </div>
                       
-                      <div className="flex flex-col items-center px-2 min-w-[60px]">
+                      <div className="flex flex-col items-center px-1 min-w-[80px]">
                         <span className="text-[10px] text-gray-500 font-bold uppercase mb-1">{match.roundName}</span>
-                        <div className="bg-gray-900 px-3 py-1 rounded-lg border border-gray-700">
-                          <span className="text-green-500 font-mono font-bold">VS</span>
+                        <div className={`px-3 py-1 rounded-lg border flex gap-2 ${match.status === 'completed' ? 'bg-gray-900 border-green-500/50' : 'bg-gray-900 border-gray-700'}`}>
+                          {match.status === 'completed' || match.score.sets.length > 0 ? (
+                             <div className="flex flex-col items-center text-xs font-mono">
+                               {match.score.sets.map((s, i) => (
+                                 <span key={i} className="leading-tight">
+                                   {s.teamA}-{s.teamB}
+                                 </span>
+                               ))}
+                             </div>
+                          ) : (
+                            <span className="text-gray-500 font-mono font-bold text-sm">VS</span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex-1 text-left pl-4">
-                        <p className="font-bold text-white truncate">{getTeamName(match.teamBId)}</p>
+                      <div className={`flex-1 text-left pl-3 ${match.score.winnerId === match.teamBId ? 'text-green-400 font-extrabold' : 'text-white font-bold'}`}>
+                        <p className="truncate">{getTeamName(match.teamBId)}</p>
                       </div>
                     </div>
                   ))}
@@ -112,6 +162,19 @@ export function TournamentView() {
           </div>
         )}
       </div>
+
+      {/* Score Modal */}
+      {selectedMatch && tournament && (
+        <ScoreModal
+          match={selectedMatch}
+          teamA={getTeam(selectedMatch.teamAId)!}
+          teamB={getTeam(selectedMatch.teamBId)!}
+          setsToWin={tournament.config.scoring.setsToWin}
+          gamesPerSet={tournament.config.scoring.gamesPerSet}
+          onClose={() => setSelectedMatch(null)}
+          onSave={handleScoreSave}
+        />
+      )}
     </div>
   );
 }

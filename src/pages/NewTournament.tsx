@@ -196,17 +196,29 @@ export function NewTournament() {
 
             <div className="flex justify-between items-center">
               <span className="text-gray-300">{t('setup.gamesPerSet')}</span>
-              <div className="flex bg-gray-900 p-1 rounded-xl border border-gray-700">
-                {[4, 6].map(val => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setConfig({...config, gamesPerSet: val})}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${config.gamesPerSet === val ? 'bg-green-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
-                  >
-                    {val}
-                  </button>
-                ))}
+              <div className="flex items-center gap-3 bg-gray-900 p-2 rounded-xl border border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => setConfig({ ...config, gamesPerSet: Math.max(1, config.gamesPerSet - 1) })}
+                  className="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded-lg hover:bg-gray-700 font-bold"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={config.gamesPerSet}
+                  onChange={(e) => setConfig({ ...config, gamesPerSet: parseInt(e.target.value) || 6 })}
+                  className="w-12 text-center bg-transparent text-white font-bold outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setConfig({ ...config, gamesPerSet: config.gamesPerSet + 1 })}
+                  className="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded-lg hover:bg-gray-700 font-bold"
+                >
+                  +
+                </button>
               </div>
             </div>
 

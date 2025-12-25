@@ -30,7 +30,19 @@
     "noMatches": "Nessuna partita programmata.",
     "points": "PT",
     "played": "G",
-    "sets": "S"
+    "sets": "S",
+    "scoreModal": {
+      "title": "Inserisci Punteggio",
+      "set": "Set",
+      "save": "Salva Risultato",
+      "cancel": "Annulla",
+      "completed": "Partita Completata"
+    },
+    "configSummary": {
+      "bestOf": "Al meglio dei {{count}} Set",
+      "gamesPerSet": "{{count}} Game",
+      "goldenPoint": "Punto de Oro"
+    }
   },
   "setup": {
     "tournamentName": "Nome Torneo",

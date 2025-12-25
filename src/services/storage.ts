@@ -1,4 +1,4 @@
-import type { Tournament } from '../types';
+import type { Tournament, Match } from '../types';
 
 const STORAGE_KEY = 'padel_tournaments';
 
@@ -29,6 +29,23 @@ export const storageService = {
     }
     
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tournaments));
+  },
+
+  updateMatch: (tournamentId: string, match: Match): void => {
+    const tournament = storageService.getTournament(tournamentId);
+    if (!tournament) return;
+
+    // Find and update match in groups
+    for (const group of tournament.groups) {
+      const matchIndex = group.matches.findIndex(m => m.id === match.id);
+      if (matchIndex !== -1) {
+        group.matches[matchIndex] = match;
+        storageService.saveTournament(tournament);
+        return;
+      }
+    }
+    
+    // TODO: Add logic for knockout matches when implemented
   },
 
   deleteTournament: (id: string): void => {
