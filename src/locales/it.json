@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "Torneo Padel",
+    "subtitle": "Gestisci gironi ed eliminazioni dirette con facilità.",
+    "newTournament": "Nuovo Torneo",
+    "loadTournament": "Carica Torneo",
+    "back": "Indietro",
+    "configure": "Configura Torneo",
+    "placeholderConfig": "Qui andrà il form di configurazione.",
+    "dashboard": "Dashboard Torneo",
+    "placeholderDashboard": "Dashboard del torneo attivo."
+  },
+  "nav": {
+    "brand": "PadelTour"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "Padel Tournament",
+    "subtitle": "Manage group stages and knockout rounds with ease.",
+    "newTournament": "New Tournament",
+    "loadTournament": "Load Tournament",
+    "back": "Back",
+    "configure": "Configure Tournament",
+    "placeholderConfig": "Configuration form will go here.",
+    "dashboard": "Tournament Dashboard",
+    "placeholderDashboard": "Active tournament dashboard."
+  },
+  "nav": {
+    "brand": "PadelTour"
+  }
+}
