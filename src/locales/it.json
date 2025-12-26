@@ -10,7 +10,11 @@
     "dashboard": "Dashboard Torneo",
     "placeholderDashboard": "Dashboard del torneo attivo.",
     "create": "Crea Torneo",
-    "notFound": "Torneo non trovato"
+    "notFound": "Torneo non trovato",
+    "export": "Esporta JSON",
+    "import": "Importa JSON",
+    "importSuccess": "Torneo importato con successo!",
+    "importError": "File torneo non valido."
   },
   "home": {
     "activeTournaments": "I tuoi Tornei",

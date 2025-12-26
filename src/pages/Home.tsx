@@ -21,6 +21,32 @@ export function Home() {
     }
   };
 
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const tournament = JSON.parse(json);
+        
+        // Basic validation
+        if (!tournament.id || !tournament.config) {
+          throw new Error('Invalid format');
+        }
+
+        storageService.saveTournament(tournament);
+        alert(t('app.importSuccess'));
+        setTournaments(storageService.getAllTournaments());
+      } catch (err) {
+        alert(t('app.importError'));
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="flex flex-col py-8 pb-24">
       <div className="text-center mb-10">
@@ -32,14 +58,27 @@ export function Home() {
         </p>
       </div>
       
-      {/* Action Button */}
-      <button 
-        onClick={() => navigate('/new')}
-        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 mb-10"
-      >
-        <span className="text-2xl">+</span>
-        <span className="text-lg">{t('app.newTournament')}</span>
-      </button>
+      {/* Action Buttons */}
+      <div className="w-full space-y-4 mb-10">
+        <button 
+          onClick={() => navigate('/new')}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+        >
+          <span className="text-2xl">+</span>
+          <span className="text-lg">{t('app.newTournament')}</span>
+        </button>
+
+        <label className="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-4 px-6 rounded-2xl border border-gray-700 shadow-md transform transition hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+          <input 
+            type="file" 
+            accept=".json" 
+            onChange={handleImport}
+            className="hidden" 
+          />
+          <span className="text-2xl">📂</span>
+          <span className="text-lg">{t('app.loadTournament')}</span>
+        </label>
+      </div>
 
       {/* Tournament List */}
       <div>

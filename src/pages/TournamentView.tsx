@@ -51,6 +51,17 @@ export function TournamentView() {
     setSelectedMatch(null);
   };
 
+  const handleExport = () => {
+    if (!tournament) return;
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tournament));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `padel-tournament-${tournament.config.name.replace(/\s+/g, '_')}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
   if (!tournament) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -81,9 +92,17 @@ export function TournamentView() {
     <div className="pb-20">
       {/* Header */}
       <div className="mb-6">
-        <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white mb-2 transition-colors">
-          &larr; {t('app.back')}
-        </button>
+        <div className="flex justify-between items-start">
+          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white mb-2 transition-colors">
+            &larr; {t('app.back')}
+          </button>
+          <button 
+            onClick={handleExport}
+            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-600 transition-colors flex items-center gap-1"
+          >
+            <span>⬇️</span> {t('app.export')}
+          </button>
+        </div>
         <h2 className="text-2xl font-bold text-white">{tournament.config.name}</h2>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400 mt-1">
           <span className="uppercase tracking-widest border-r border-gray-600 pr-4">{t(`setup.${tournament.config.type}`)}</span>

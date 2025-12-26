@@ -10,7 +10,11 @@
     "dashboard": "Tournament Dashboard",
     "placeholderDashboard": "Active tournament dashboard.",
     "create": "Create Tournament",
-    "notFound": "Tournament not found"
+    "notFound": "Tournament not found",
+    "export": "Export JSON",
+    "import": "Import JSON",
+    "importSuccess": "Tournament imported successfully!",
+    "importError": "Invalid tournament file."
   },
   "home": {
     "activeTournaments": "Your Tournaments",
