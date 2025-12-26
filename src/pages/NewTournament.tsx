@@ -17,24 +17,17 @@ export function NewTournament() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Tournament State
   const [name, setName] = useState('');
-  
-  // Stages Config
   const [stages, setStages] = useState({
     groupStage: true,
     knockoutStage: true
   });
 
-  // Scoring Configs
   const [groupScoring, setGroupScoring] = useState<ScoringRules>({ ...DEFAULT_SCORING });
   const [knockoutScoring, setKnockoutScoring] = useState<ScoringRules>({ ...DEFAULT_SCORING });
-  
-  // Advancement
   const [numGroups, setNumGroups] = useState(1);
   const [teamsPerGroup, setTeamsPerGroup] = useState(2);
 
-  // Teams
   const [teams, setTeams] = useState<Team[]>([
     { id: generateId(), name: '', players: ['', ''] },
     { id: generateId(), name: '', players: ['', ''] }
@@ -64,7 +57,6 @@ export function NewTournament() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     const validTeams = teams.filter(t => t.name.trim() !== '');
     if (validTeams.length < 2) {
       alert(t('setup.validation.minTeams'));
@@ -75,7 +67,6 @@ export function NewTournament() {
       return;
     }
     if (!stages.groupStage && !stages.knockoutStage) {
-      alert("Please select at least one stage.");
       return;
     }
 
@@ -94,7 +85,6 @@ export function NewTournament() {
 
     const newTournament = createTournament(fullConfig, validTeams);
     storageService.saveTournament(newTournament);
-    
     navigate(`/tournament/${newTournament.id}`);
   };
 
@@ -108,7 +98,6 @@ export function NewTournament() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Info */}
         <section className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-inner">
           <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">
             {t('setup.tournamentName')}
@@ -123,7 +112,6 @@ export function NewTournament() {
           />
         </section>
 
-        {/* Stages Selection */}
         <section className="grid grid-cols-2 gap-4">
           <label className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${stages.groupStage ? 'border-green-500 bg-green-500/10' : 'border-gray-700 bg-gray-800'}`}>
             <div className="flex items-center justify-between mb-2">
@@ -152,14 +140,12 @@ export function NewTournament() {
           </label>
         </section>
 
-        {/* Rules Configuration */}
         {stages.groupStage && (
           <section className="bg-gray-800 p-5 rounded-2xl border border-gray-700">
             <h3 className="text-xl font-bold text-green-400 mb-5 flex items-center gap-2">
               <span>⚙️</span> {t('setup.groupRules')}
             </h3>
             <RulesConfigurator config={groupScoring} onChange={setGroupScoring} t={t} />
-            
             <div className="mt-6 pt-6 border-t border-gray-700 space-y-6">
               <div className="flex justify-between items-center">
                 <span className="text-gray-300">{t('setup.numGroups')}</span>
@@ -176,7 +162,6 @@ export function NewTournament() {
                   ))}
                 </div>
               </div>
-
               {stages.knockoutStage && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">{t('setup.teamsPassing')}</span>
@@ -200,7 +185,6 @@ export function NewTournament() {
           </section>
         )}
 
-        {/* Teams Section */}
         <section>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -208,7 +192,6 @@ export function NewTournament() {
               <span className="text-sm bg-gray-700 px-2 py-0.5 rounded-full text-gray-300">{teams.length}</span>
             </h3>
           </div>
-          
           <div className="space-y-4">
             {teams.map((team, index) => (
               <div key={team.id} className="bg-gray-800 p-4 rounded-2xl border border-gray-700 relative group animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -249,7 +232,6 @@ export function NewTournament() {
               </div>
             ))}
           </div>
-
           <button
             type="button"
             onClick={addTeam}
@@ -259,7 +241,6 @@ export function NewTournament() {
           </button>
         </section>
 
-        {/* Submit Button */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900/80 backdrop-blur-md border-t border-gray-800 max-w-md mx-auto z-20">
           <button
             type="submit"
@@ -273,7 +254,6 @@ export function NewTournament() {
   );
 }
 
-// Helper Component for Scoring Rules
 function RulesConfigurator({ config, onChange, t }: { config: ScoringRules, onChange: (c: ScoringRules) => void, t: any }) {
   return (
     <div className="space-y-6">
@@ -285,14 +265,13 @@ function RulesConfigurator({ config, onChange, t }: { config: ScoringRules, onCh
               key={val}
               type="button"
               onClick={() => onChange({...config, setsToWin: val})}
-              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${config.setsToWin === val ? 'bg-gray-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+              className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${config.setsToWin === val ? 'bg-green-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
             >
               {val}
             </button>
           ))}
         </div>
       </div>
-
       <div className="flex justify-between items-center">
         <span className="text-gray-300">{t('setup.gamesPerSet')}</span>
         <div className="flex items-center gap-3 bg-gray-900 p-2 rounded-xl border border-gray-700">
@@ -313,7 +292,7 @@ function RulesConfigurator({ config, onChange, t }: { config: ScoringRules, onCh
           />
           <button
             type="button"
-            onClick={(_e) => onChange({ ...config, gamesPerSet: config.gamesPerSet + 1 })}
+            onClick={() => onChange({ ...config, gamesPerSet: config.gamesPerSet + 1 })}
             className="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded-lg hover:bg-gray-700 font-bold"
           >
             +

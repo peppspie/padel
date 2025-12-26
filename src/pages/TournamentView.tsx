@@ -108,12 +108,10 @@ export function TournamentView() {
     return isKnockout ? tournament.config.scoring.knockout : tournament.config.scoring.group;
   };
 
-  // Logic for mixed tournament transition
   const totalGroupMatches = tournament.groups.reduce((acc, g) => acc + g.matches.length, 0);
   const completedGroupMatches = tournament.groups.reduce((acc, g) => acc + g.matches.filter(m => m.status === 'completed').length, 0);
   const isGroupStageCompleted = totalGroupMatches > 0 && totalGroupMatches === completedGroupMatches;
   const remainingGroupMatches = totalGroupMatches - completedGroupMatches;
-
   const isKnockoutStarted = tournament.knockout.matches.some(m => m.status !== 'scheduled' || m.score.sets.length > 0);
 
   let typeLabel = '';
@@ -215,13 +213,11 @@ export function TournamentView() {
              {tournament.knockout.matches.length === 0 ? (
                <div className="text-center py-12 bg-gray-800 rounded-2xl border border-gray-700 border-dashed">
                  <p className="text-gray-400 mb-6 px-4">{t('tournament.bracketNotGenerated')}</p>
-                 
                  {!isGroupStageCompleted && hasGroups && (
                    <p className="text-xs text-red-400/80 mb-4 bg-red-500/10 py-2 rounded-lg mx-6">
                      ⚠️ {t('tournament.completeGroupStageFirst', { remaining: remainingGroupMatches })}
                    </p>
                  )}
-
                  <button 
                    onClick={handleGenerateBracket}
                    disabled={!isGroupStageCompleted && hasGroups}
@@ -232,24 +228,14 @@ export function TournamentView() {
                </div>
              ) : (
                <div className="space-y-6">
-                 {/* Reset Button (only if knockout hasn't started) */}
                  {!isKnockoutStarted && hasGroups && (
                    <div className="flex justify-end px-1">
-                     <button 
-                       onClick={handleResetBracket}
-                       className="text-[10px] font-bold text-red-400/60 hover:text-red-400 border border-red-400/20 hover:border-red-400/50 px-2 py-1 rounded-md transition-all"
-                     >
-                       {t('tournament.resetBracket')}
-                     </button>
+                     <button onClick={handleResetBracket} className="text-[10px] font-bold text-red-400/60 hover:text-red-400 border border-red-400/20 hover:border-red-400/50 px-2 py-1 rounded-md transition-all">{t('tournament.resetBracket')}</button>
                    </div>
                  )}
-
                  {Object.entries(groupByRound(tournament.knockout.matches)).map(([roundKey, matches]) => (
                    <div key={roundKey} className="space-y-3">
-                     <h3 className="text-lg font-bold text-blue-400 flex items-center gap-2 px-1 sticky top-0 bg-gray-900/90 py-2 z-10 backdrop-blur-sm">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        {t(roundKey)}
-                     </h3>
+                     <h3 className="text-lg font-bold text-blue-400 flex items-center gap-2 px-1 sticky top-0 bg-gray-900/90 py-2 z-10 backdrop-blur-sm"><span className="w-2 h-2 bg-blue-500 rounded-full"></span>{t(roundKey)}</h3>
                      <div className="space-y-3">
                         {matches.map((match: Match) => (
                           <MatchCard key={match.id} match={match} getTeamName={getTeamName} onClick={() => handleMatchClick(match)} isKnockout />

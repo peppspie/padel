@@ -10,7 +10,6 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
       <Navbar />
       <main className="max-w-md mx-auto px-4 py-6 w-full"> 
-        {/* max-w-md forces a mobile-like width on desktop too, focusing the UI */}
         {children}
       </main>
     </div>

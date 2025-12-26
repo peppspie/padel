@@ -1,7 +1,9 @@
 import type { Tournament, TournamentConfig, Team, Group, Match, MatchStatus, TeamStats } from '../types';
 import { generateId } from '../utils';
 
-// Helper to shuffle array (Fisher-Yates)
+/**
+ * Internal helper to shuffle an array using the Fisher-Yates algorithm.
+ */
 function shuffle<T>(array: T[]): T[] {
   const newArr = [...array];
   for (let i = newArr.length - 1; i > 0; i--) {
@@ -11,7 +13,26 @@ function shuffle<T>(array: T[]): T[] {
   return newArr;
 }
 
-// Generate Round Robin matches for a list of team IDs
+/**
+ * Factory function to create a new knockout match object.
+ */
+function createKnockoutMatch(teamA: Team, teamB: Team, roundName: string): Match {
+  return {
+    id: generateId(),
+    teamAId: teamA.id,
+    teamBId: teamB.id,
+    score: { sets: [] },
+    status: 'scheduled',
+    roundName: roundName,
+    timestamp: Date.now()
+  };
+}
+
+/**
+ * Generates a Round Robin match schedule for a given set of teams.
+ * @param {string[]} teamIds - Array of team IDs participating in the group.
+ * @returns {Match[]} Array of scheduled matches.
+ */
 function generateRoundRobinMatches(teamIds: string[]): Match[] {
   const matches: Match[] = [];
   const teams = [...teamIds];
@@ -42,6 +63,10 @@ function generateRoundRobinMatches(teamIds: string[]): Match[] {
   return matches;
 }
 
+/**
+ * Determines the translation key for a round based on the number of participants.
+ * @param {number} size - Number of teams or matches in the round.
+ */
 function getRoundNameKey(size: number): string {
   if (size === 2) return 'tournament.rounds.final';
   if (size === 4) return 'tournament.rounds.semiFinal';
@@ -50,6 +75,11 @@ function getRoundNameKey(size: number): string {
   return `tournament.rounds.roundOf${size}`;
 }
 
+/**
+ * Generates an initial knockout bracket for a list of teams.
+ * @param {Team[]} teams - List of participating teams.
+ * @returns {Match[]} Array of first-round matches.
+ */
 export function generateKnockoutBracket(teams: Team[]): Match[] {
   const matches: Match[] = [];
   const n = teams.length;
@@ -58,20 +88,15 @@ export function generateKnockoutBracket(teams: Team[]): Match[] {
   const roundNameKey = getRoundNameKey(size);
   for (let i = 0; i < n; i += 2) {
     if (i + 1 < n) {
-      matches.push({
-        id: generateId(),
-        teamAId: teams[i].id,
-        teamBId: teams[i+1].id,
-        score: { sets: [] },
-        status: 'scheduled',
-        roundName: roundNameKey,
-        timestamp: Date.now()
-      });
+      matches.push(createKnockoutMatch(teams[i], teams[i+1], roundNameKey));
     }
   }
   return matches;
 }
 
+/**
+ * Determines the next round name key based on the match count of the current round.
+ */
 function getNextRoundNameKey(currentRoundMatchesCount: number): string | null {
   if (currentRoundMatchesCount === 4) return 'tournament.rounds.semiFinal';
   if (currentRoundMatchesCount === 2) return 'tournament.rounds.final';
@@ -79,6 +104,11 @@ function getNextRoundNameKey(currentRoundMatchesCount: number): string | null {
   return null;
 }
 
+/**
+ * Handles the advancement of a winner to the next round in a knockout stage.
+ * @param {Tournament} tournament - The tournament object.
+ * @param {Match} completedMatch - The match that was just finished.
+ */
 export function advanceKnockoutWinner(tournament: Tournament, completedMatch: Match): void {
   if (!tournament.knockout || !completedMatch.score.winnerId) return;
   const currentRoundNameKey = completedMatch.roundName;
@@ -109,6 +139,12 @@ export function advanceKnockoutWinner(tournament: Tournament, completedMatch: Ma
   }
 }
 
+/**
+ * Calculates standings for a specific group based on completed matches.
+ * Sorts teams by points, then set difference, then game difference.
+ * @param {Group} group - The group stage object.
+ * @returns {TeamStats[]} Ranked array of team statistics.
+ */
 export function calculateStandings(group: Group): TeamStats[] {
   const statsMap: Record<string, TeamStats> = {};
   group.teamIds.forEach((id: string) => {
@@ -140,21 +176,61 @@ export function calculateStandings(group: Group): TeamStats[] {
   });
 }
 
+/**
+ * Promotes top teams from each group to a new knockout bracket using cross-seeding.
+ * @param {Tournament} tournament - The tournament object.
+ * @returns {Match[]} Array of first-round knockout matches.
+ */
 export function generateKnockoutFromGroups(tournament: Tournament): Match[] {
-  const qualifiedTeams: Team[] = [];
   const teamsPerGroup = tournament.config.advancement.teamsPerGroup;
   const sortedGroups = [...tournament.groups].sort((a, b) => a.name.localeCompare(b.name));
-  sortedGroups.forEach(group => {
+  const rankedTeams: Team[][] = sortedGroups.map(group => {
     const standings = calculateStandings(group);
-    const topTeamsIds = standings.slice(0, teamsPerGroup).map(s => s.teamId);
-    topTeamsIds.forEach(id => {
-      const team = tournament.teams.find(t => t.id === id);
-      if (team) qualifiedTeams.push(team);
+    return standings.slice(0, teamsPerGroup).map(s => {
+      return tournament.teams.find(t => t.id === s.teamId)!;
     });
   });
-  return generateKnockoutBracket(qualifiedTeams);
+
+  const numGroups = rankedTeams.length;
+  const totalQualifiers = numGroups * teamsPerGroup;
+  const roundNameKey = getRoundNameKey(totalQualifiers);
+  const matches: Match[] = [];
+
+  // 2 groups cross-seed: 1st Group A vs 2nd Group B, 1st Group B vs 2nd Group A
+  if (numGroups === 2 && teamsPerGroup === 2) {
+    matches.push(createKnockoutMatch(rankedTeams[0][0], rankedTeams[1][1], roundNameKey));
+    matches.push(createKnockoutMatch(rankedTeams[1][0], rankedTeams[0][1], roundNameKey));
+    return matches;
+  }
+
+  // 1 group seed: 1st vs 4th, 2nd vs 3rd
+  if (numGroups === 1) {
+    const teams = rankedTeams[0];
+    for (let i = 0; i < Math.floor(teams.length / 2); i++) {
+      matches.push(createKnockoutMatch(teams[i], teams[teams.length - 1 - i], roundNameKey));
+    }
+    return matches;
+  }
+
+  // 4 groups block cross-seed (A-B, C-D)
+  if (numGroups === 4 && teamsPerGroup === 2) {
+    matches.push(createKnockoutMatch(rankedTeams[0][0], rankedTeams[1][1], roundNameKey)); 
+    matches.push(createKnockoutMatch(rankedTeams[2][0], rankedTeams[3][1], roundNameKey)); 
+    matches.push(createKnockoutMatch(rankedTeams[1][0], rankedTeams[0][1], roundNameKey)); 
+    matches.push(createKnockoutMatch(rankedTeams[3][0], rankedTeams[2][1], roundNameKey)); 
+    return matches;
+  }
+
+  const flatQualifiers: Team[] = [];
+  rankedTeams.forEach(groupTeams => flatQualifiers.push(...groupTeams));
+  return generateKnockoutBracket(flatQualifiers);
 }
 
+/**
+ * Main factory to initialize a tournament structure based on provided configuration.
+ * @param {TournamentConfig} config - Tournament rules and stages.
+ * @param {Team[]} teams - Participating teams.
+ */
 export function createTournament(config: TournamentConfig, teams: Team[]): Tournament {
   const tournamentId = generateId();
   const shuffledTeams = shuffle(teams);
