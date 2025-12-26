@@ -26,7 +26,8 @@ export interface Match {
   teamBId: string;
   score: MatchScore;
   status: MatchStatus;
-  roundName: string; // e.g., "Group A", "Quarter Final"
+  roundName: string; // Key for translation
+  roundNumber?: number; // Optional number for round
   timestamp: number;
 }
 

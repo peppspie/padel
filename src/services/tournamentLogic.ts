@@ -37,7 +37,8 @@ function generateRoundRobinMatches(teamIds: string[]): Match[] {
           teamBId: t2,
           score: { sets: [] },
           status: 'scheduled' as MatchStatus,
-          roundName: `Round ${round + 1}`,
+          roundName: 'tournament.rounds.groupRound',
+          roundNumber: round + 1,
           timestamp: Date.now()
         });
       }
@@ -50,59 +51,12 @@ function generateRoundRobinMatches(teamIds: string[]): Match[] {
   return matches;
 }
 
-// ... imports
-
-function getNextRoundName(currentRoundMatchesCount: number): string | null {
-  if (currentRoundMatchesCount === 8) return 'Quarter Final'; // Was Round of 16
-  if (currentRoundMatchesCount === 4) return 'Semi Final';    // Was Quarter Final
-  if (currentRoundMatchesCount === 2) return 'Final';         // Was Semi Final
-  if (currentRoundMatchesCount === 1) return null;            // Was Final
-  return `Next Round`; // Fallback
-}
-
-export function advanceKnockoutWinner(tournament: Tournament, completedMatch: Match): void {
-  if (!tournament.knockout || !completedMatch.score.winnerId) return;
-
-  const currentRoundName = completedMatch.roundName;
-  // Get all matches of this round to determine index
-  // We assume matches are stored in order or can be found sequentially
-  const roundMatches = tournament.knockout.matches.filter(m => m.roundName === currentRoundName);
-  
-  // Find index of completed match in this round (0, 1, 2, 3...)
-  const matchIndex = roundMatches.findIndex(m => m.id === completedMatch.id);
-  if (matchIndex === -1) return;
-
-  // Calculate next match details
-  const nextRoundName = getNextRoundName(roundMatches.length);
-  if (!nextRoundName) return; // Tournament finished
-
-  const nextMatchIndex = Math.floor(matchIndex / 2);
-  const targetSlot = matchIndex % 2 === 0 ? 'teamAId' : 'teamBId';
-
-  // Find if next match already exists
-  let nextMatch = tournament.knockout.matches.find(m => 
-    m.roundName === nextRoundName && 
-    // We need a way to identify specific matches in next round. 
-    // Since we create them dynamically, the N-th match of next round corresponds to N-th index in the filtered list
-    tournament.knockout.matches.filter(x => x.roundName === nextRoundName).indexOf(m) === nextMatchIndex
-  );
-
-  if (nextMatch) {
-    // Update existing match
-    nextMatch[targetSlot] = completedMatch.score.winnerId;
-  } else {
-    // Create new match
-    const newMatch: Match = {
-      id: generateId(),
-      teamAId: targetSlot === 'teamAId' ? completedMatch.score.winnerId : '',
-      teamBId: targetSlot === 'teamBId' ? completedMatch.score.winnerId : '',
-      score: { sets: [] },
-      status: 'scheduled',
-      roundName: nextRoundName,
-      timestamp: Date.now()
-    };
-    tournament.knockout.matches.push(newMatch);
-  }
+function getRoundNameKey(size: number): string {
+  if (size === 2) return 'tournament.rounds.final';
+  if (size === 4) return 'tournament.rounds.semiFinal';
+  if (size === 8) return 'tournament.rounds.quarterFinal';
+  if (size === 16) return 'tournament.rounds.roundOf16';
+  return `tournament.rounds.roundOf${size}`;
 }
 
 export function generateKnockoutBracket(teams: Team[]): Match[] {
@@ -113,8 +67,7 @@ export function generateKnockoutBracket(teams: Team[]): Match[] {
   let size = 1;
   while (size < n) size *= 2;
 
-  // Create first round matches
-  const roundName = size === 4 ? 'Semi Final' : size === 8 ? 'Quarter Final' : size === 2 ? 'Final' : `Round of ${size}`;
+  const roundNameKey = getRoundNameKey(size);
   
   for (let i = 0; i < n; i += 2) {
     if (i + 1 < n) {
@@ -124,7 +77,7 @@ export function generateKnockoutBracket(teams: Team[]): Match[] {
         teamBId: teams[i+1].id,
         score: { sets: [] },
         status: 'scheduled',
-        roundName: roundName,
+        roundName: roundNameKey,
         timestamp: Date.now()
       });
     }
@@ -133,10 +86,53 @@ export function generateKnockoutBracket(teams: Team[]): Match[] {
   return matches;
 }
 
+function getNextRoundNameKey(currentRoundMatchesCount: number): string | null {
+  // If current round had 4 matches (Quarter), next has 2 (Semi)
+  // If current had 2 (Semi), next has 1 (Final)
+  if (currentRoundMatchesCount === 4) return 'tournament.rounds.semiFinal';
+  if (currentRoundMatchesCount === 2) return 'tournament.rounds.final';
+  if (currentRoundMatchesCount === 8) return 'tournament.rounds.quarterFinal';
+  return null;
+}
+
+export function advanceKnockoutWinner(tournament: Tournament, completedMatch: Match): void {
+  if (!tournament.knockout || !completedMatch.score.winnerId) return;
+
+  const currentRoundNameKey = completedMatch.roundName;
+  const roundMatches = tournament.knockout.matches.filter(m => m.roundName === currentRoundNameKey);
+  const matchIndex = roundMatches.findIndex(m => m.id === completedMatch.id);
+  if (matchIndex === -1) return;
+
+  const nextRoundNameKey = getNextRoundNameKey(roundMatches.length);
+  if (!nextRoundNameKey) return;
+
+  const nextMatchIndex = Math.floor(matchIndex / 2);
+  const targetSlot = matchIndex % 2 === 0 ? 'teamAId' : 'teamBId';
+
+  let nextMatch = tournament.knockout.matches.find(m => 
+    m.roundName === nextRoundNameKey && 
+    tournament.knockout.matches.filter(x => x.roundName === nextRoundNameKey).indexOf(m) === nextMatchIndex
+  );
+
+  if (nextMatch) {
+    nextMatch[targetSlot] = completedMatch.score.winnerId;
+  } else {
+    const newMatch: Match = {
+      id: generateId(),
+      teamAId: targetSlot === 'teamAId' ? completedMatch.score.winnerId : '',
+      teamBId: targetSlot === 'teamBId' ? completedMatch.score.winnerId : '',
+      score: { sets: [] },
+      status: 'scheduled',
+      roundName: nextRoundNameKey,
+      timestamp: Date.now()
+    };
+    tournament.knockout.matches.push(newMatch);
+  }
+}
+
 export function calculateStandings(group: Group): TeamStats[] {
   const statsMap: Record<string, TeamStats> = {};
 
-  // Initialize stats for each team in the group
   group.teamIds.forEach(id => {
     statsMap[id] = {
       teamId: id,
@@ -151,19 +147,13 @@ export function calculateStandings(group: Group): TeamStats[] {
     };
   });
 
-  // Process completed matches
   group.matches.forEach(match => {
     if (match.status !== 'completed' || !match.score.winnerId) return;
-
     const tA = statsMap[match.teamAId];
     const tB = statsMap[match.teamBId];
-
     if (!tA || !tB) return;
-
     tA.played++;
     tB.played++;
-
-    // Winner/Loser and Points
     if (match.score.winnerId === match.teamAId) {
       tA.won++;
       tA.points += 2;
@@ -173,14 +163,11 @@ export function calculateStandings(group: Group): TeamStats[] {
       tB.points += 2;
       tA.lost++;
     }
-
-    // Sets and Games
     match.score.sets.forEach(set => {
       tA.setsWon += set.teamA > set.teamB ? 1 : 0;
       tA.setsLost += set.teamA < set.teamB ? 1 : 0;
       tB.setsWon += set.teamB > set.teamA ? 1 : 0;
       tB.setsLost += set.teamB < set.teamA ? 1 : 0;
-
       tA.gamesWon += set.teamA;
       tA.gamesLost += set.teamB;
       tB.gamesWon += set.teamB;
@@ -188,55 +175,41 @@ export function calculateStandings(group: Group): TeamStats[] {
     });
   });
 
-  // Convert to array and sort
   return Object.values(statsMap).sort((a, b) => {
-    // 1. Points
     if (b.points !== a.points) return b.points - a.points;
-    // 2. Set Difference
     const diffSetsA = a.setsWon - a.setsLost;
     const diffSetsB = b.setsWon - b.setsLost;
     if (diffSetsB !== diffSetsA) return diffSetsB - diffSetsA;
-    // 3. Game Difference
     const diffGamesA = a.gamesWon - a.gamesLost;
     const diffGamesB = b.gamesWon - b.gamesLost;
     return diffGamesB - diffGamesA;
   });
 }
 
-export function createTournament(
-  config: TournamentConfig,
-  teams: Team[]
-): Tournament {
+export function createTournament(config: TournamentConfig, teams: Team[]): Tournament {
   const tournamentId = generateId();
   const shuffledTeams = shuffle(teams);
   let groups: Group[] = [];
   let knockoutMatches: Match[] = [];
   
   if (config.type === 'groups' || config.type === 'mixed') {
-    // For now, let's put everyone in 1 group if teams <= 5, 
-    // or split into 2 groups if > 5. 
     const numGroups = teams.length > 5 ? 2 : 1;
-    
-    // Distribute teams into groups
     const groupBuckets: string[][] = Array.from({ length: numGroups }, () => []);
     shuffledTeams.forEach((team, index) => {
       groupBuckets[index % numGroups].push(team.id);
     });
-
     groups = groupBuckets.map((bucket, index) => {
       const matches = generateRoundRobinMatches(bucket);
       return {
         id: generateId(),
-        name: `Group ${String.fromCharCode(65 + index)}`, // Group A, Group B...
+        name: String.fromCharCode(65 + index), // "A", "B", etc.
         teamIds: bucket,
         matches: matches
       };
     });
   } else if (config.type === 'knockout') {
-    // Generate full bracket directly
     knockoutMatches = generateKnockoutBracket(shuffledTeams);
   }
-
   return {
     id: tournamentId,
     config,

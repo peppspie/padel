@@ -15,7 +15,7 @@ export function Home() {
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this tournament?')) {
+    if (confirm(t('home.confirmDelete'))) {
       storageService.deleteTournament(id);
       setTournaments(storageService.getAllTournaments());
     }
@@ -62,7 +62,7 @@ export function Home() {
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="text-lg font-bold text-white truncate pr-8">{tournament.config.name}</h4>
                   <span className="text-xs font-bold bg-gray-900 text-gray-400 px-2 py-1 rounded-md uppercase tracking-wider">
-                    {tournament.config.type}
+                    {t(`setup.${tournament.config.type}`)}
                   </span>
                 </div>
                 

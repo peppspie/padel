@@ -71,7 +71,7 @@ export function TournamentView() {
 
   const getTeamName = (teamId: string) => {
     if (!teamId) return t('tournament.waiting');
-    return getTeam(teamId)?.name || 'Unknown';
+    return getTeam(teamId)?.name || t('tournament.unknown');
   };
 
   const hasGroups = tournament.groups.length > 0;
@@ -135,7 +135,7 @@ export function TournamentView() {
               <div key={group.id} className="space-y-4">
                 <h3 className="text-lg font-bold text-green-400 flex items-center gap-2 px-1">
                   <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  {group.name}
+                  {t('tournament.group')} {group.name}
                 </h3>
                 
                 <div className="space-y-3">
@@ -156,7 +156,7 @@ export function TournamentView() {
                 <div key={group.id} className="space-y-3">
                   <h3 className="text-lg font-bold text-green-400 flex items-center gap-2 px-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    {group.name} - {t('tournament.standings')}
+                    {t('tournament.group')} {group.name} - {t('tournament.standings')}
                   </h3>
                   
                   <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden shadow-xl">
@@ -201,11 +201,11 @@ export function TournamentView() {
         {activeTab === 'bracket' && hasKnockout && (
           <div className="space-y-6">
              {/* Group matches by round name just for display */}
-             {Object.entries(groupByRound(tournament.knockout.matches)).map(([roundName, matches]) => (
-               <div key={roundName} className="space-y-3">
+             {Object.entries(groupByRound(tournament.knockout.matches)).map(([roundKey, matches]) => (
+               <div key={roundKey} className="space-y-3">
                  <h3 className="text-lg font-bold text-blue-400 flex items-center gap-2 px-1 sticky top-0 bg-gray-900/90 py-2 z-10 backdrop-blur-sm">
                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    {roundName}
+                    {t(roundKey)}
                  </h3>
                  <div className="space-y-3">
                     {matches.map(match => (
@@ -236,6 +236,7 @@ export function TournamentView() {
 
 // Sub-component for Match Card to reuse code
 function MatchCard({ match, getTeamName, onClick, isKnockout = false }: { match: Match, getTeamName: (id: string) => string, onClick: () => void, isKnockout?: boolean }) {
+  const { t } = useTranslation();
   return (
     <div 
       onClick={onClick}
@@ -246,7 +247,11 @@ function MatchCard({ match, getTeamName, onClick, isKnockout = false }: { match:
       </div>
       
       <div className="flex flex-col items-center px-1 min-w-[80px]">
-        {!isKnockout && <span className="text-[10px] text-gray-500 font-bold uppercase mb-1">{match.roundName}</span>}
+        {!isKnockout && (
+          <span className="text-[10px] text-gray-500 font-bold uppercase mb-1">
+            {t(match.roundName, { count: match.roundNumber })}
+          </span>
+        )}
         <div className={`px-3 py-1 rounded-lg border flex gap-2 ${match.status === 'completed' ? (isKnockout ? 'bg-gray-900 border-blue-500/50' : 'bg-gray-900 border-green-500/50') : 'bg-gray-900 border-gray-700'}`}>
           {match.status === 'completed' || match.score.sets.length > 0 ? (
               <div className="flex flex-col items-center text-xs font-mono">
@@ -256,10 +261,9 @@ function MatchCard({ match, getTeamName, onClick, isKnockout = false }: { match:
                   </span>
                 ))}
               </div>
-          ) : (
-            <span className="text-gray-500 font-mono font-bold text-sm">VS</span>
-          )}
-        </div>
+                                    ) : (
+                                      <span className="text-gray-500 font-mono font-bold text-sm">{t('tournament.vs')}</span>
+                                    )}        </div>
       </div>
 
       <div className={`flex-1 text-left pl-3 ${match.score.winnerId === match.teamBId ? (isKnockout ? 'text-blue-400 font-extrabold' : 'text-green-400 font-extrabold') : 'text-white font-bold'}`}>

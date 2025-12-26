@@ -95,7 +95,7 @@ export function NewTournament() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all"
-            placeholder="e.g. Winter Cup 2025"
+            placeholder={t('setup.namePlaceholder')}
           />
 
           <label className="block text-sm font-semibold text-gray-400 mt-6 mb-2 uppercase tracking-wider">

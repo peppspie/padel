@@ -16,18 +16,21 @@
     "activeTournaments": "I tuoi Tornei",
     "noTournaments": "Nessun torneo. Creane uno nuovo!",
     "delete": "Elimina",
+    "confirmDelete": "Sei sicuro di voler eliminare questo torneo?",
     "continue": "Continua"
   },
   "nav": {
     "brand": "PadelTour"
   },
   "tournament": {
+    "group": "Girone",
     "groupStage": "Fase a Gironi",
     "knockoutStage": "Eliminazione Diretta",
     "matches": "Partite",
     "standings": "Classifica",
     "bracket": "Tabellone",
     "vs": "vs",
+    "unknown": "Sconosciuto",
     "waiting": "In attesa...",
     "noMatches": "Nessuna partita programmata.",
     "points": "PT",
@@ -40,6 +43,13 @@
       "cancel": "Annulla",
       "completed": "Partita Completata"
     },
+    "rounds": {
+      "final": "Finale",
+      "semiFinal": "Semifinale",
+      "quarterFinal": "Quarti di Finale",
+      "roundOf16": "Ottavi di Finale",
+      "groupRound": "Turno {{count}}"
+    },
     "configSummary": {
       "bestOf": "Al meglio dei {{count}} Set",
       "gamesPerSet": "{{count}} Game",
@@ -48,6 +58,7 @@
   },
   "setup": {
     "tournamentName": "Nome Torneo",
+    "namePlaceholder": "Inserisci il nome del torneo...",
     "tournamentType": "Tipo Torneo",
     "groups": "Solo Gironi",
     "knockout": "Eliminazione Diretta",

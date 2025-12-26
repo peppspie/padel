@@ -99,7 +99,7 @@ export function ScoreModal({ match, teamA, teamB, setsToWin, gamesPerSet, onClos
           {/* Teams Header */}
           <div className="flex justify-between items-center mb-6 px-2">
             <span className="font-bold text-green-400 w-1/3 truncate text-center text-lg">{teamA.name}</span>
-            <span className="text-gray-500 font-bold text-xs uppercase">VS</span>
+            <span className="text-gray-500 font-bold text-xs uppercase">{t('tournament.vs')}</span>
             <span className="font-bold text-blue-400 w-1/3 truncate text-center text-lg">{teamB.name}</span>
           </div>
 
