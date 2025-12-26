@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Tournament, Match, MatchScore } from '../types';
+import type { Tournament, Match, MatchScore, ScoringRules } from '../types';
 import { storageService } from '../services/storage';
 import { calculateStandings } from '../services/tournamentLogic';
 import { ScoreModal } from '../components/ScoreModal';
@@ -25,8 +25,8 @@ export function TournamentView() {
       const data = storageService.getTournament(id);
       if (data) {
         setTournament(data);
-        // If knockout only, default to bracket tab
-        if (data.config.type === 'knockout' && activeTab === 'matches') {
+        // Default tab logic
+        if (data.config.stages.knockoutStage && !data.config.stages.groupStage && activeTab === 'matches') {
           setActiveTab('bracket');
         }
       }
@@ -47,7 +47,7 @@ export function TournamentView() {
     };
 
     storageService.updateMatch(tournament.id, updatedMatch);
-    loadTournament(); // Reload to update UI
+    loadTournament();
     setSelectedMatch(null);
   };
 
@@ -85,8 +85,25 @@ export function TournamentView() {
     return getTeam(teamId)?.name || t('tournament.unknown');
   };
 
-  const hasGroups = tournament.groups.length > 0;
-  const hasKnockout = tournament.knockout.matches.length > 0;
+  // Helper to determine active rules based on tab/context
+  const activeRules: ScoringRules = activeTab === 'bracket' 
+    ? tournament.config.scoring.knockout 
+    : tournament.config.scoring.group;
+  
+  // Helper to determine rules for a specific match (for Modal)
+  const getMatchRules = (match: Match): ScoringRules => {
+    const isKnockout = tournament.knockout.matches.some(m => m.id === match.id);
+    return isKnockout ? tournament.config.scoring.knockout : tournament.config.scoring.group;
+  };
+
+  // Determine Tournament Type Label
+  let typeLabel = '';
+  if (tournament.config.stages.groupStage && tournament.config.stages.knockoutStage) typeLabel = t('setup.mixed');
+  else if (tournament.config.stages.groupStage) typeLabel = t('setup.groups');
+  else typeLabel = t('setup.knockout');
+
+  const hasGroups = tournament.config.stages.groupStage;
+  const hasKnockout = tournament.config.stages.knockoutStage;
 
   return (
     <div className="pb-20">
@@ -105,11 +122,13 @@ export function TournamentView() {
         </div>
         <h2 className="text-2xl font-bold text-white">{tournament.config.name}</h2>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400 mt-1">
-          <span className="uppercase tracking-widest border-r border-gray-600 pr-4">{t(`setup.${tournament.config.type}`)}</span>
-          <span>{t('tournament.configSummary.bestOf', { count: tournament.config.scoring.setsToWin === 1 ? 1 : (tournament.config.scoring.setsToWin * 2 - 1) })}</span>
+          <span className="uppercase tracking-widest border-r border-gray-600 pr-4">{typeLabel}</span>
+          
+          {/* Display rules for current view */}
+          <span>{t('tournament.configSummary.bestOf', { count: activeRules.setsToWin === 1 ? 1 : (activeRules.setsToWin * 2 - 1) })}</span>
           <span>•</span>
-          <span>{t('tournament.configSummary.gamesPerSet', { count: tournament.config.scoring.gamesPerSet })}</span>
-          {tournament.config.scoring.decidingPoint && (
+          <span>{t('tournament.configSummary.gamesPerSet', { count: activeRules.gamesPerSet })}</span>
+          {activeRules.decidingPoint && (
             <>
               <span>•</span>
               <span className="text-yellow-500 font-medium">{t('tournament.configSummary.goldenPoint')}</span>
@@ -219,7 +238,6 @@ export function TournamentView() {
 
         {activeTab === 'bracket' && hasKnockout && (
           <div className="space-y-6">
-             {/* Group matches by round name just for display */}
              {Object.entries(groupByRound(tournament.knockout.matches)).map(([roundKey, matches]) => (
                <div key={roundKey} className="space-y-3">
                  <h3 className="text-lg font-bold text-blue-400 flex items-center gap-2 px-1 sticky top-0 bg-gray-900/90 py-2 z-10 backdrop-blur-sm">
@@ -243,8 +261,8 @@ export function TournamentView() {
           match={selectedMatch}
           teamA={getTeam(selectedMatch.teamAId)!}
           teamB={getTeam(selectedMatch.teamBId)!}
-          setsToWin={tournament.config.scoring.setsToWin}
-          gamesPerSet={tournament.config.scoring.gamesPerSet}
+          setsToWin={getMatchRules(selectedMatch).setsToWin}
+          gamesPerSet={getMatchRules(selectedMatch).gamesPerSet}
           onClose={() => setSelectedMatch(null)}
           onSave={handleScoreSave}
         />
@@ -280,9 +298,10 @@ function MatchCard({ match, getTeamName, onClick, isKnockout = false }: { match:
                   </span>
                 ))}
               </div>
-                                    ) : (
-                                      <span className="text-gray-500 font-mono font-bold text-sm">{t('tournament.vs')}</span>
-                                    )}        </div>
+          ) : (
+            <span className="text-gray-500 font-mono font-bold text-sm">{t('tournament.vs')}</span>
+          )}
+        </div>
       </div>
 
       <div className={`flex-1 text-left pl-3 ${match.score.winnerId === match.teamBId ? (isKnockout ? 'text-blue-400 font-extrabold' : 'text-green-400 font-extrabold') : 'text-white font-bold'}`}>

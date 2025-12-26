@@ -80,6 +80,12 @@
     "validation": {
       "minTeams": "At least 2 teams are required",
       "nameRequired": "Tournament name is required"
-    }
+    },
+    "enableGroupStage": "Group Stage",
+    "enableKnockoutStage": "Knockout Stage",
+    "groupRules": "Group Rules",
+    "knockoutRules": "Knockout Rules",
+    "advancementRules": "Advancement",
+    "teamsPassing": "Teams passing per group"
   }
 }

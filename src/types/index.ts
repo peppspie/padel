@@ -1,7 +1,7 @@
 export interface Team {
   id: string;
   name: string; 
-  players: [string, string]; // Names of the two players
+  players: [string, string];
 }
 
 export type MatchStatus = 'scheduled' | 'in_progress' | 'completed';
@@ -27,22 +27,31 @@ export interface Match {
   score: MatchScore;
   status: MatchStatus;
   roundName: string; // Key for translation
-  roundNumber?: number; // Optional number for round
+  roundNumber?: number;
   timestamp: number;
+}
+
+export interface ScoringRules {
+  gamesPerSet: number;
+  setsToWin: number;
+  tieBreakAt: number;
+  decidingPoint: boolean;
+  superTieBreakInFinalSet: boolean;
 }
 
 export interface TournamentConfig {
   name: string;
-  type: 'groups' | 'knockout' | 'mixed'; // mixed = groups -> knockout
-  scoring: {
-    gamesPerSet: number; // usually 6
-    setsToWin: number; // usually 2 (best of 3)
-    tieBreakAt: number; // usually 6 (6-6)
-    decidingPoint: boolean; // "Killer point" on 40-40 (optional feature)
-    superTieBreakInFinalSet: boolean; // if true, last set is a tie-break to 10
+  // Replaces the old 'type' string
+  stages: {
+    groupStage: boolean;
+    knockoutStage: boolean;
   };
-  groupStage?: {
-    passingTeamsPerGroup: number;
+  scoring: {
+    group: ScoringRules;
+    knockout: ScoringRules;
+  };
+  advancement: {
+    teamsPerGroup: number; // How many teams pass to knockout
   };
 }
 
@@ -62,11 +71,11 @@ export interface Group {
   id: string;
   name: string;
   teamIds: string[];
-  matches: Match[]; // Matches within this group
+  matches: Match[]; 
 }
 
 export interface KnockoutStage {
-  matches: Match[]; // Can be organized by round (e.g., via roundName or a round index)
+  matches: Match[]; 
 }
 
 export interface Tournament {

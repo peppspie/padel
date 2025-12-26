@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { storageService } from '../services/storage';
-import type { Tournament } from '../types';
+import type { Tournament, TournamentConfig } from '../types';
 
 export function Home() {
   const navigate = useNavigate();
@@ -45,6 +45,17 @@ export function Home() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const getTypeLabel = (config: TournamentConfig) => {
+    // Handle V2 config
+    if (config.stages) {
+      if (config.stages.groupStage && config.stages.knockoutStage) return 'mixed';
+      if (config.stages.groupStage) return 'groups';
+      return 'knockout';
+    }
+    // Fallback for V1 config (if any)
+    return (config as any).type || 'unknown';
   };
 
   return (
@@ -101,7 +112,7 @@ export function Home() {
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="text-lg font-bold text-white truncate pr-8">{tournament.config.name}</h4>
                   <span className="text-xs font-bold bg-gray-900 text-gray-400 px-2 py-1 rounded-md uppercase tracking-wider">
-                    {t(`setup.${tournament.config.type}`)}
+                    {t(`setup.${getTypeLabel(tournament.config)}`)}
                   </span>
                 </div>
                 

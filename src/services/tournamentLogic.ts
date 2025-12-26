@@ -186,30 +186,38 @@ export function calculateStandings(group: Group): TeamStats[] {
   });
 }
 
-export function createTournament(config: TournamentConfig, teams: Team[]): Tournament {
+export function createTournament(
+  config: TournamentConfig,
+  teams: Team[]
+): Tournament {
   const tournamentId = generateId();
   const shuffledTeams = shuffle(teams);
   let groups: Group[] = [];
   let knockoutMatches: Match[] = [];
   
-  if (config.type === 'groups' || config.type === 'mixed') {
+  // Logic based on stages
+  if (config.stages.groupStage) {
+    // Generate Groups
     const numGroups = teams.length > 5 ? 2 : 1;
     const groupBuckets: string[][] = Array.from({ length: numGroups }, () => []);
     shuffledTeams.forEach((team, index) => {
       groupBuckets[index % numGroups].push(team.id);
     });
+
     groups = groupBuckets.map((bucket, index) => {
       const matches = generateRoundRobinMatches(bucket);
       return {
         id: generateId(),
-        name: String.fromCharCode(65 + index), // "A", "B", etc.
+        name: String.fromCharCode(65 + index), 
         teamIds: bucket,
         matches: matches
       };
     });
-  } else if (config.type === 'knockout') {
+  } else if (config.stages.knockoutStage) {
+    // Generate Bracket directly (Knockout Only)
     knockoutMatches = generateKnockoutBracket(shuffledTeams);
   }
+
   return {
     id: tournamentId,
     config,

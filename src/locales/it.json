@@ -80,6 +80,12 @@
     "validation": {
       "minTeams": "Sono necessarie almeno 2 squadre",
       "nameRequired": "Il nome del torneo è obbligatorio"
-    }
+    },
+    "enableGroupStage": "Fase a Gironi",
+    "enableKnockoutStage": "Fase Eliminazione",
+    "groupRules": "Regole Gironi",
+    "knockoutRules": "Regole Eliminazione",
+    "advancementRules": "Avanzamento",
+    "teamsPassing": "Qualificate per girone"
   }
 }
