@@ -33,6 +33,8 @@
     "matches": "Partite",
     "standings": "Classifica",
     "bracket": "Tabellone",
+    "generateBracket": "Genera Tabellone",
+    "bracketNotGenerated": "Termina la fase a gironi per generare il tabellone.",
     "vs": "vs",
     "unknown": "Sconosciuto",
     "waiting": "In attesa...",
@@ -86,6 +88,7 @@
     "groupRules": "Regole Gironi",
     "knockoutRules": "Regole Eliminazione",
     "advancementRules": "Avanzamento",
+    "numGroups": "Numero di gironi",
     "teamsPassing": "Qualificate per girone"
   }
 }

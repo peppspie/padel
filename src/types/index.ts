@@ -35,13 +35,11 @@ export interface ScoringRules {
   gamesPerSet: number;
   setsToWin: number;
   tieBreakAt: number;
-  decidingPoint: boolean;
   superTieBreakInFinalSet: boolean;
 }
 
 export interface TournamentConfig {
   name: string;
-  // Replaces the old 'type' string
   stages: {
     groupStage: boolean;
     knockoutStage: boolean;
@@ -51,7 +49,8 @@ export interface TournamentConfig {
     knockout: ScoringRules;
   };
   advancement: {
-    teamsPerGroup: number; // How many teams pass to knockout
+    numGroups: number;
+    teamsPerGroup: number;
   };
 }
 
@@ -84,6 +83,7 @@ export interface Tournament {
   teams: Team[];
   groups: Group[];
   knockout: KnockoutStage;
+  knockoutGenerated?: boolean;
   status: 'draft' | 'active' | 'completed';
   createdAt: string;
 }

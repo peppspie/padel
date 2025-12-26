@@ -10,7 +10,6 @@ const DEFAULT_SCORING: ScoringRules = {
   gamesPerSet: 6,
   setsToWin: 2,
   tieBreakAt: 6,
-  decidingPoint: true,
   superTieBreakInFinalSet: false
 };
 
@@ -32,6 +31,7 @@ export function NewTournament() {
   const [knockoutScoring, setKnockoutScoring] = useState<ScoringRules>({ ...DEFAULT_SCORING });
   
   // Advancement
+  const [numGroups, setNumGroups] = useState(1);
   const [teamsPerGroup, setTeamsPerGroup] = useState(2);
 
   // Teams
@@ -87,6 +87,7 @@ export function NewTournament() {
         knockout: knockoutScoring
       },
       advancement: {
+        numGroups,
         teamsPerGroup
       }
     };
@@ -159,8 +160,24 @@ export function NewTournament() {
             </h3>
             <RulesConfigurator config={groupScoring} onChange={setGroupScoring} t={t} />
             
-            {stages.knockoutStage && (
-              <div className="mt-6 pt-6 border-t border-gray-700">
+            <div className="mt-6 pt-6 border-t border-gray-700 space-y-6">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">{t('setup.numGroups')}</span>
+                <div className="flex bg-gray-900 p-1 rounded-xl border border-gray-700">
+                  {[1, 2, 4].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setNumGroups(val)}
+                      className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${numGroups === val ? 'bg-green-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {stages.knockoutStage && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">{t('setup.teamsPassing')}</span>
                   <div className="flex items-center gap-3 bg-gray-900 p-2 rounded-xl border border-gray-700">
@@ -169,8 +186,8 @@ export function NewTournament() {
                     <button type="button" onClick={() => setTeamsPerGroup(teamsPerGroup + 1)} className="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded-lg font-bold">+</button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </section>
         )}
 
@@ -296,26 +313,13 @@ function RulesConfigurator({ config, onChange, t }: { config: ScoringRules, onCh
           />
           <button
             type="button"
-            onClick={() => onChange({ ...config, gamesPerSet: config.gamesPerSet + 1 })}
+            onClick={(_e) => onChange({ ...config, gamesPerSet: config.gamesPerSet + 1 })}
             className="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded-lg hover:bg-gray-700 font-bold"
           >
             +
           </button>
         </div>
       </div>
-
-      <label className="flex items-center justify-between cursor-pointer group">
-        <span className="text-gray-300">{t('setup.decidingPoint')}</span>
-        <div className="relative inline-flex items-center">
-          <input
-            type="checkbox"
-            checked={config.decidingPoint}
-            onChange={(e) => onChange({...config, decidingPoint: e.target.checked})}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-        </div>
-      </label>
     </div>
   );
 }

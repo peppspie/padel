@@ -33,6 +33,8 @@
     "matches": "Matches",
     "standings": "Standings",
     "bracket": "Bracket",
+    "generateBracket": "Generate Bracket",
+    "bracketNotGenerated": "Finish the group stage to generate the bracket.",
     "vs": "vs",
     "unknown": "Unknown",
     "waiting": "Waiting...",
@@ -86,6 +88,7 @@
     "groupRules": "Group Rules",
     "knockoutRules": "Knockout Rules",
     "advancementRules": "Advancement",
+    "numGroups": "Number of groups",
     "teamsPassing": "Teams passing per group"
   }
 }

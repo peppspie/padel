@@ -12,15 +12,10 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 // Generate Round Robin matches for a list of team IDs
-// Uses Berger tables algorithm or simple rotation
 function generateRoundRobinMatches(teamIds: string[]): Match[] {
   const matches: Match[] = [];
   const teams = [...teamIds];
-  
-  // If odd number of teams, add a dummy team for "bye"
-  if (teams.length % 2 !== 0) {
-    teams.push('bye');
-  }
+  if (teams.length % 2 !== 0) teams.push('bye');
 
   const numRounds = teams.length - 1;
   const halfSize = teams.length / 2;
@@ -29,7 +24,6 @@ function generateRoundRobinMatches(teamIds: string[]): Match[] {
     for (let i = 0; i < halfSize; i++) {
       const t1 = teams[i];
       const t2 = teams[teams.length - 1 - i];
-
       if (t1 !== 'bye' && t2 !== 'bye') {
         matches.push({
           id: generateId(),
@@ -43,11 +37,8 @@ function generateRoundRobinMatches(teamIds: string[]): Match[] {
         });
       }
     }
-
-    // Rotate teams for next round (keep first fixed)
     teams.splice(1, 0, teams.pop()!);
   }
-
   return matches;
 }
 
@@ -62,13 +53,9 @@ function getRoundNameKey(size: number): string {
 export function generateKnockoutBracket(teams: Team[]): Match[] {
   const matches: Match[] = [];
   const n = teams.length;
-  
-  // Find next power of 2
   let size = 1;
   while (size < n) size *= 2;
-
   const roundNameKey = getRoundNameKey(size);
-  
   for (let i = 0; i < n; i += 2) {
     if (i + 1 < n) {
       matches.push({
@@ -82,13 +69,10 @@ export function generateKnockoutBracket(teams: Team[]): Match[] {
       });
     }
   }
-
   return matches;
 }
 
 function getNextRoundNameKey(currentRoundMatchesCount: number): string | null {
-  // If current round had 4 matches (Quarter), next has 2 (Semi)
-  // If current had 2 (Semi), next has 1 (Final)
   if (currentRoundMatchesCount === 4) return 'tournament.rounds.semiFinal';
   if (currentRoundMatchesCount === 2) return 'tournament.rounds.final';
   if (currentRoundMatchesCount === 8) return 'tournament.rounds.quarterFinal';
@@ -97,23 +81,18 @@ function getNextRoundNameKey(currentRoundMatchesCount: number): string | null {
 
 export function advanceKnockoutWinner(tournament: Tournament, completedMatch: Match): void {
   if (!tournament.knockout || !completedMatch.score.winnerId) return;
-
   const currentRoundNameKey = completedMatch.roundName;
-  const roundMatches = tournament.knockout.matches.filter(m => m.roundName === currentRoundNameKey);
-  const matchIndex = roundMatches.findIndex(m => m.id === completedMatch.id);
+  const roundMatches = tournament.knockout.matches.filter((m: Match) => m.roundName === currentRoundNameKey);
+  const matchIndex = roundMatches.findIndex((m: Match) => m.id === completedMatch.id);
   if (matchIndex === -1) return;
-
   const nextRoundNameKey = getNextRoundNameKey(roundMatches.length);
   if (!nextRoundNameKey) return;
-
   const nextMatchIndex = Math.floor(matchIndex / 2);
   const targetSlot = matchIndex % 2 === 0 ? 'teamAId' : 'teamBId';
-
-  let nextMatch = tournament.knockout.matches.find(m => 
+  const nextMatch = tournament.knockout.matches.find((m: Match) => 
     m.roundName === nextRoundNameKey && 
-    tournament.knockout.matches.filter(x => x.roundName === nextRoundNameKey).indexOf(m) === nextMatchIndex
+    tournament.knockout.matches.filter((x: Match) => x.roundName === nextRoundNameKey).indexOf(m) === nextMatchIndex
   );
-
   if (nextMatch) {
     nextMatch[targetSlot] = completedMatch.score.winnerId;
   } else {
@@ -132,99 +111,65 @@ export function advanceKnockoutWinner(tournament: Tournament, completedMatch: Ma
 
 export function calculateStandings(group: Group): TeamStats[] {
   const statsMap: Record<string, TeamStats> = {};
-
-  group.teamIds.forEach(id => {
-    statsMap[id] = {
-      teamId: id,
-      played: 0,
-      won: 0,
-      lost: 0,
-      setsWon: 0,
-      setsLost: 0,
-      gamesWon: 0,
-      gamesLost: 0,
-      points: 0
-    };
+  group.teamIds.forEach((id: string) => {
+    statsMap[id] = { teamId: id, played: 0, won: 0, lost: 0, setsWon: 0, setsLost: 0, gamesWon: 0, gamesLost: 0, points: 0 };
   });
-
-  group.matches.forEach(match => {
+  group.matches.forEach((match: Match) => {
     if (match.status !== 'completed' || !match.score.winnerId) return;
     const tA = statsMap[match.teamAId];
     const tB = statsMap[match.teamBId];
     if (!tA || !tB) return;
-    tA.played++;
-    tB.played++;
-    if (match.score.winnerId === match.teamAId) {
-      tA.won++;
-      tA.points += 2;
-      tB.lost++;
-    } else {
-      tB.won++;
-      tB.points += 2;
-      tA.lost++;
-    }
-    match.score.sets.forEach(set => {
+    tA.played++; tB.played++;
+    if (match.score.winnerId === match.teamAId) { tA.won++; tA.points += 2; tB.lost++; }
+    else { tB.won++; tB.points += 2; tA.lost++; }
+    match.score.sets.forEach((set: any) => {
       tA.setsWon += set.teamA > set.teamB ? 1 : 0;
       tA.setsLost += set.teamA < set.teamB ? 1 : 0;
       tB.setsWon += set.teamB > set.teamA ? 1 : 0;
       tB.setsLost += set.teamB < set.teamA ? 1 : 0;
-      tA.gamesWon += set.teamA;
-      tA.gamesLost += set.teamB;
-      tB.gamesWon += set.teamB;
-      tB.gamesLost += set.teamA;
+      tA.gamesWon += set.teamA; tA.gamesLost += set.teamB;
+      tB.gamesWon += set.teamB; tB.gamesLost += set.teamA;
     });
   });
-
   return Object.values(statsMap).sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     const diffSetsA = a.setsWon - a.setsLost;
     const diffSetsB = b.setsWon - b.setsLost;
     if (diffSetsB !== diffSetsA) return diffSetsB - diffSetsA;
-    const diffGamesA = a.gamesWon - a.gamesLost;
-    const diffGamesB = b.gamesWon - b.gamesLost;
-    return diffGamesB - diffGamesA;
+    return (b.gamesWon - b.gamesLost) - (a.gamesWon - a.gamesLost);
   });
 }
 
-export function createTournament(
-  config: TournamentConfig,
-  teams: Team[]
-): Tournament {
+export function generateKnockoutFromGroups(tournament: Tournament): Match[] {
+  const qualifiedTeams: Team[] = [];
+  const teamsPerGroup = tournament.config.advancement.teamsPerGroup;
+  const sortedGroups = [...tournament.groups].sort((a, b) => a.name.localeCompare(b.name));
+  sortedGroups.forEach(group => {
+    const standings = calculateStandings(group);
+    const topTeamsIds = standings.slice(0, teamsPerGroup).map(s => s.teamId);
+    topTeamsIds.forEach(id => {
+      const team = tournament.teams.find(t => t.id === id);
+      if (team) qualifiedTeams.push(team);
+    });
+  });
+  return generateKnockoutBracket(qualifiedTeams);
+}
+
+export function createTournament(config: TournamentConfig, teams: Team[]): Tournament {
   const tournamentId = generateId();
   const shuffledTeams = shuffle(teams);
   let groups: Group[] = [];
   let knockoutMatches: Match[] = [];
-  
-  // Logic based on stages
   if (config.stages.groupStage) {
-    // Generate Groups
-    const numGroups = teams.length > 5 ? 2 : 1;
+    const numGroups = config.advancement.numGroups;
     const groupBuckets: string[][] = Array.from({ length: numGroups }, () => []);
-    shuffledTeams.forEach((team, index) => {
-      groupBuckets[index % numGroups].push(team.id);
-    });
-
+    shuffledTeams.forEach((team, index) => { groupBuckets[index % numGroups].push(team.id); });
     groups = groupBuckets.map((bucket, index) => {
       const matches = generateRoundRobinMatches(bucket);
-      return {
-        id: generateId(),
-        name: String.fromCharCode(65 + index), 
-        teamIds: bucket,
-        matches: matches
-      };
+      return { id: generateId(), name: String.fromCharCode(65 + index), teamIds: bucket, matches: matches };
     });
   } else if (config.stages.knockoutStage) {
-    // Generate Bracket directly (Knockout Only)
     knockoutMatches = generateKnockoutBracket(shuffledTeams);
   }
-
-  return {
-    id: tournamentId,
-    config,
-    teams,
-    groups,
-    knockout: { matches: knockoutMatches },
-    status: 'active',
-    createdAt: new Date().toISOString()
-  };
+  return { id: tournamentId, config, teams, groups, knockout: { matches: knockoutMatches }, status: 'active', createdAt: new Date().toISOString() };
 }
