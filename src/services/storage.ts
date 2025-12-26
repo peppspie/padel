@@ -1,4 +1,5 @@
 import type { Tournament, Match } from '../types';
+import { advanceKnockoutWinner } from './tournamentLogic';
 
 const STORAGE_KEY = 'padel_tournaments';
 
@@ -45,7 +46,21 @@ export const storageService = {
       }
     }
     
-    // TODO: Add logic for knockout matches when implemented
+    // Find and update match in knockout
+    if (tournament.knockout) {
+      const matchIndex = tournament.knockout.matches.findIndex(m => m.id === match.id);
+      if (matchIndex !== -1) {
+        tournament.knockout.matches[matchIndex] = match;
+        
+        // Handle advancement if match is completed
+        if (match.status === 'completed') {
+          advanceKnockoutWinner(tournament, match);
+        }
+        
+        storageService.saveTournament(tournament);
+        return;
+      }
+    }
   },
 
   deleteTournament: (id: string): void => {

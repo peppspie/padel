@@ -45,6 +45,18 @@ export interface TournamentConfig {
   };
 }
 
+export interface TeamStats {
+  teamId: string;
+  played: number;
+  won: number;
+  lost: number;
+  setsWon: number;
+  setsLost: number;
+  gamesWon: number;
+  gamesLost: number;
+  points: number;
+}
+
 export interface Group {
   id: string;
   name: string;
